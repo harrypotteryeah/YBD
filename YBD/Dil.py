@@ -72,6 +72,12 @@ class SifiraBolmeHatasi(Hata):
 
 class GecersizSozDizimi(Hata):
 	mesaj="Geçersiz söz dizimi"
+
+class KapanmayanTirnak(Hata):
+	mesaj="Tırnak işareti kapanmamış" 
+
+class KapanmayanParantez(Hata):
+	mesaj="Parantez işareti kapanmamış"
 # ====================================================================
 
 class Metin:
@@ -128,25 +134,43 @@ class Degisken:
 	def __str__(self):
 		return self.__repr__()
 # ====================================================================
-#TODO Make girdi a list
+#TODO Add Islem type for  +-/* 
 def listelestir(girdi:str):
 	girdi_liste=girdi.split(' \t')
 	cikti_liste=[]
 	for bolum in girdi_liste:
+		i=0
 		geciciliste=[]
-		if '"' in bolum:
-			x2=0
-			while x2< len(bolum):
+		while i<len(bolum):
+			harf=bolum[i]
+			if harf=='"':
+				metin=[]
+				i+=1
+				while i<len(bolum) and bolum[i]!='"':
+					metin.append(bolum[i])
+					i+=1
+				if i==len(bolum):
+					raise KapanmayanTirnak
+				
+				else:
+					metin="".join(metin)
+					metin=Metin(metin)
+					geciciliste.append(metin)
+					i+=1
+					
+				
+			if harf=="=":
+				x2=bolum.index('=')
+				geciciliste.extend(listelestir(bolum[:x2]))
+				geciciliste.append("=")
+				geciciliste.extend(listelestir(bolum[x2+1:])[0])
+
+			if harf in "+-/*":
+
 				pass
 
-		if '=' in bolum:
-			x2=bolum.index('=')
-			geciciliste.extend(listelestir(bolum[:x2]))
-			geciciliste.append("=")
-			geciciliste.extend(listelestir(bolum[x2+1:])[0])
-		if icinde("+-/*",bolum):
-			pass
-		 
+			i+=1
+			
 		if not geciciliste:
 			cikti_liste.append(bolum)
 		else:
@@ -339,4 +363,4 @@ if __name__ == "__main__":
 		except Exception as e:
 			print(e)
 
-print("\nProgram sona erdi.")
+	print("\nProgram sona erdi.")
