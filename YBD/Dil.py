@@ -11,7 +11,7 @@ debug = False
 high_debug = False
 # ====================================================================
 
-def icinde(list1, list2):
+def icinde(list1:str|list, list2:str|list):
 	if isinstance(list1, list) and isinstance(list2, list):
 		for i in list1:
 			if i in list2:
@@ -26,8 +26,12 @@ def icinde(list1, list2):
 		for i in list1:
 			if i in list2:
 				return True
+	elif isinstance(list2, str) and isinstance(list1, str):
+		for i in list1:
+			if i in list2:
+				return True
 	else:
-		return "Gecersiz"
+		return -1
 
 	return False
 
@@ -130,11 +134,23 @@ def listelestir(girdi:str):
 	cikti_liste=[]
 	for bolum in girdi_liste:
 		geciciliste=[]
+		if '"' in bolum:
+			x2=0
+			while x2< len(bolum):
+				pass
+
 		if '=' in bolum:
 			x2=bolum.index('=')
-			geciciliste.append(listelestir(bolum[:x2])[0])
-		else:
+			geciciliste.extend(listelestir(bolum[:x2]))
+			geciciliste.append("=")
+			geciciliste.extend(listelestir(bolum[x2+1:])[0])
+		if icinde("+-/*",bolum):
+			pass
+		 
+		if not geciciliste:
 			cikti_liste.append(bolum)
+		else:
+			cikti_liste.extend(geciciliste)
 
 	return cikti_liste
 
