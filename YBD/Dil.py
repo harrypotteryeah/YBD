@@ -6,7 +6,7 @@ Matematiksel = ("\t", " ", "+", "-", "*", "/", ".", "(", ")")+Rakamlar
 Mantiksal = ("==", "<", ">", "&", "|", "!", " ", "=>", ">=", "<=",
 "=<", "ve", "veya", "ya da", "Dogru", "Doğru", "Yanlis", "Yanlış")
 Dil_Alfabesi = Alfabe+Matematiksel+Mantiksal
-mod = 0
+mod = 1
 debug = False
 high_debug = False
 # ====================================================================
@@ -100,7 +100,11 @@ class Islem:
 	def __init__(self, islem_liste:list):
 		self.liste=islem_liste
 		self.duzenlenmis=False
-
+	
+	def duzenle(self):
+		#TODO duzenle fonksyonu ekle
+		pass
+	
 	def __repr__(self):
 		return f"I|({self.duzenlenmis}){self.liste}|" if high_debug else f"I|{self.liste}|"
 
@@ -237,8 +241,6 @@ def listelestir(girdi:str|list):
 						break
 
 				
-				
-				#TODO İşlemler için İşlem class'ı yap
 				if bolum[i] in "+-/*":
 					pass
 
@@ -250,7 +252,7 @@ def listelestir(girdi:str|list):
 	return cikti_liste
 
 
-def calistir(girdi:list):
+def cozumle(girdi:list):
 	try:
 		cikti = None
 		# ====================================================================
@@ -272,13 +274,13 @@ def calistir(girdi:list):
 			degler=list(filter(lambda x:isinstance(x,Degisken),girdi))
 			if len(degler)>1:
 				raise GecersizDegiskenİsmi
-			degler[0].deger=calistir(degler[0].deger)
+			degler[0].deger=cozumle(degler[0].deger)
 			cikti=degler[0]
 			return cikti
 			
 			
 		# ====================================================================
-		if not cikti:
+		""" if not cikti:
 			try:
 				cikti = str(eval(girdi))
 			except ZeroDivisionError:
@@ -286,37 +288,12 @@ def calistir(girdi:list):
 		
 			if not isinstance(cikti,Hata) and not isinstance(cikti,Degisken):
 				if int(float(cikti)) == float(cikti):
-					cikti = str(int(float(cikti)))
+					cikti = str(int(float(cikti))) """
 	# ====================================================================
 
 
 	except ZeroDivisionError:
 		cikti = SifiraBolmeHatasi()
-
-	except NameError as e:
-		for x2, harf1 in enumerate(girdi):
-			if not harf1 in Matematiksel:
-				isim = []
-				while x2 < len(girdi) and not girdi[x2] in set(Matematiksel)-set(Rakamlar):
-					isim.append(girdi[x2])
-					x2 += 1
-				isim = "".join(isim)
-				if isim in Degisken.degiskenler.keys():
-					deg = Degisken.degiskenler[isim]
-					if isinstance(deg.deger, Metin):
-						cikti = deg.deger
-					else:
-						girdi = girdi.replace(
-						isim, Degisken.degiskenler[isim].deger)
-						try:
-							cikti = calistir(girdi)
-						except Exception as e:
-							raise e
-						break
-				else:
-					cikti = BilinmeyenDegisken()
-
-					raise cikti
 
 	except SyntaxError:
 		cikti = "Geçersiz söz dizimi"
@@ -331,21 +308,13 @@ def calistir(girdi:list):
 	finally:
 		return cikti
 
+def calistir(girdi:list|str):
+	cikti=None
+	if isinstance(girdi,str):
+		cikti=cozumle(listelestir(girdi))
 
-# =====================================
-if __name__ == "__main__":
-	if mod == 1:
-		while True:
-			girdi = input("gir>>>>")
-			cikti = calistir(girdi)
-			print(cikti)
-
-	elif mod == 0:
-		try:
-			with open("dosya.txt", "r") as f:
-				liste = list(map(lambda x: x.strip("\n \t"), f.readlines()))
-
-			for sira, satir in enumerate(liste):
+	elif isinstance(girdi,list):
+		for sira, satir in enumerate(girdi):
 				if satir == "" or satir.strip(" \t")[0] == "#":
 					continue
 
@@ -353,20 +322,33 @@ if __name__ == "__main__":
 					x = 0
 					pass
 
-				cikti = calistir(satir)
-				if isinstance(cikti,Exception):
-					if isinstance(cikti,Hata):
-						print(f'!!!!! HATA !!!!!\n{cikti.mesaj}')
+				calistir_cikti = calistir(listelestir(satir))
+				if isinstance(calistir_cikti,Exception):
+					if isinstance(calistir_cikti,Hata):
+						cikti=f'!!!!! HATA !!!!!\n{calistir_cikti.mesaj}'
 						break
 					else:
-						print(f'!!!!! HATA !!!!!\n{cikti}')
+						cikti = f'!!!!! HATA !!!!!\n{calistir_cikti}'
 						raise cikti
 
 				if not debug:
 					if not isinstance(cikti, Degisken):
-						print(cikti)
+						return cikti
 				else:
-					print(f"{sira+1}) {cikti}")
+					cikti = f"{sira+1}) {cikti}"
+# =====================================
+if __name__ == "__main__":
+	if mod == 1:
+		while True:
+			girdi = input("kod_gir >>")
+			cikti = calistir(girdi)
+			
+
+	elif mod == 0:
+		try:
+			with open("dosya.txt", "r") as f:
+				liste = list(map(lambda x: x.strip("\n \t"), f.readlines()))
+			cikti = calistir(liste)
 
 		except FileNotFoundError:
 			print("Belirtilen dosya bulunamadı")
@@ -374,4 +356,5 @@ if __name__ == "__main__":
 		except Exception as e:
 			print(e)
 
+	print(cikti)
 	print("\nProgram sona erdi.")
