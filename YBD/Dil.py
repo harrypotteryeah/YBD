@@ -37,7 +37,7 @@ def icinde(list1:str|list, list2:str|list):
 
 def ayir(metin:str,ayraclar:str|list=" \t"):
 	if not icinde(ayraclar, metin):
-		liste=[].append(metin)
+		liste=[metin]
 		return liste
 	else:
 		metin=metin.strip(ayraclar).split(ayraclar[0])
@@ -217,9 +217,12 @@ def listelestir(girdi:str|list):
 		girdi_liste=girdi
 	cikti_liste=[]
 
-	if any(["=" in bolum for bolum in girdi_liste if not isinstance(bolum,Metin)]):
-			x2=girdi_liste.index('=')
-			cikti_liste.append(Degisken(girdi_liste[:x2][0],listelestir(girdi_liste[x2+1:])))
+	#if any(["=" in bolum for bolum in girdi_liste if not isinstance(bolum,Metin)]):
+		#x2=girdi_liste.index('=')#fix this
+	for bolum in girdi_liste:
+		if not isinstance(bolum,Metin):
+			
+		cikti_liste.append(Degisken(girdi_liste[:x2][0],listelestir(girdi_liste[x2+1:])))
 	
 	else:
 		for bolum in girdi_liste:
