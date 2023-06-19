@@ -50,17 +50,24 @@ def ayir(metin:str,ayraclar:str|list=" \t"):
 					metin.remove(bolum)
 		return metin
 	
-def degistir(liste, oge1, oge2):
-	if oge1 in liste:
-		x = liste.index(oge1)
-		if not isinstance(oge2, list):
-			liste[x] = oge2
-		else:
-			for i, oge in enumerate(oge2):
-				if i == 0:
-					liste[x] = oge
-				else:
-					liste.insert(x+i, oge)
+def degistir(liste, gidecek, gelecek):
+	if isinstance(gidecek, list) and gidecek[0] in liste:
+		x = liste.index(gidecek[0])
+		for i,oge in enumerate(liste[x:]):
+			if oge != gidecek[i] or :
+				return BulunamayanOge
+		
+	else:
+		if gidecek in liste:
+			x = liste.index(gidecek)
+			if not isinstance(gelecek, list):
+				liste[x] = gelecek
+			else:
+				for i, oge in enumerate(gelecek):
+					if i == 0:
+						liste[x] = oge
+					else:
+						liste.insert(x+i, oge)
 # ====================================================================
 
 class Hata(Exception):
@@ -75,10 +82,10 @@ class GecersizDegiskenİsmi(Hata):
 	def __init__(self):
 		super().__init__()
 
-class DegiskenHarfleBaslar(GecersizDegiskenİsmi):
+class DegiskenHarfleBaslar(Hata):
 	mesaj = "Değişken ismi bir harfle başlamalıdır."
 
-class DegiskenAdindaOzelKarakter(GecersizDegiskenİsmi):
+class DegiskenAdindaOzelKarakter(Hata):
 	mesaj = "Değişken ismi ozel karakter içermemelidir."
 
 class BilinmeyenDegisken(Hata):
@@ -95,6 +102,9 @@ class KapanmayanTirnak(Hata):
 
 class KapanmayanParantez(Hata):
 	mesaj="Parantez işareti kapanmamış"
+
+class BulunamayanOge(Hata):
+	mesaj="Bulunamayan öge"
 # ====================================================================
 class Islem:
 	def __init__(self, islem_liste:list):
@@ -219,11 +229,14 @@ def listelestir(girdi:str|list):
 
 	#if any(["=" in bolum for bolum in girdi_liste if not isinstance(bolum,Metin)]):
 		#x2=girdi_liste.index('=')#fix this
-	for bolum in girdi_liste:
-		if not isinstance(bolum,Metin):
-			
-		cikti_liste.append(Degisken(girdi_liste[:x2][0],listelestir(girdi_liste[x2+1:])))
-	
+	for bolum in girdi_liste.copy():
+		if not isinstance(bolum,Metin) and "=" in bolum:
+			if bolum.index("=")==0 or bolum.index("=") == len(bolum-1):
+				return GecersizSozDizimi
+			degistir(girdi_liste,bolum,[bolum[:bolum.index("=")],"=",bolum[bolum.index("=")+1:]])
+			if girdi_liste.index("=")!=1:
+				return GecersizSozDizimi
+			cikti_liste.append(Degisken(girdi_liste[0],listelestir(girdi_liste[2:])))
 	else:
 		for bolum in girdi_liste:
 			i=0
