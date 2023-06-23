@@ -1,15 +1,21 @@
 
-Rakamlar = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".")
-Alfabe = tuple(
-"abcçdefgğhıijklmnoöprsştuüvyzqxwABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZXQW")
-Matematiksel = ("\t", " ", "+", "-", "*", "/", ".", "(", ")")+Rakamlar
-Mantiksal = ("==", "<", ">", "&", "|", "!", " ", "=>", ">=", "<=",
-"=<", "ve", "veya", "ya da", "Dogru", "Doğru", "Yanlis", "Yanlış")
-Dil_Alfabesi = Alfabe+Matematiksel+Mantiksal
-mod = 1
-debug = False
-high_debug = False
+RAKAMLAR = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."]
+ALFABE = list("abcçdefgğhıijklmnoöprsştuüvyzqxwABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZXQW")
+MATEMATIKSEL = ["\t", " ", "+", "-", "*", "/", ".", "(", ")"]+RAKAMLAR
+MANTIKSAL = ["==", "<", ">", "&", "|", "!", " ", "=>", ">=", "<=","=<",
+	      "ve", "veya", "ya da", "Dogru", "Doğru", "Yanlis", "Yanlış"]
+if __name__=="__main__":
+	INPUT_MODE = 1
+
+DEBUG = True
 # ====================================================================
+def arasinda(num:int|float,liste):
+	if not bool(liste):
+		return False
+	for i,min in [x[0] for x in liste]:
+		if num == min or (num>min and num<=liste[i][1]):
+			return True
+	return False
 
 def icinde(list1:str|list, list2:str|list):
 	if isinstance(list1, list) and isinstance(list2, list):
@@ -50,13 +56,39 @@ def ayir(metin:str,ayraclar:str|list=" \t"):
 					metin.remove(bolum)
 		return metin
 	
-def degistir(liste, gidecek, gelecek):
-	if isinstance(gidecek, list) and gidecek[0] in liste:
-		x = liste.index(gidecek[0])
-		for i,oge in enumerate(liste[x:]):
-			if oge != gidecek[i] or :
-				return BulunamayanOge
-		
+def degistir(liste:list, gidecek, gelecek):
+	if isinstance(gidecek, list) and icinde(gidecek,liste):
+		i=0
+		while i<=len(liste):
+			if len(liste)==i:
+				raise BulunamayanOge
+			
+			if liste[i]==gidecek[0]:
+				x = 0
+				while i <=len(liste):
+					if i==len(liste):
+						raise BulunamayanOge
+					
+					if x==len(gidecek):
+						for _ in range(len(gidecek)):
+							liste.pop(i-x)
+						if isinstance(gelecek,list):
+							for oge in gelecek[::-1]:
+								liste.insert(i-x,oge)
+						else:
+							liste.insert(i-x,gelecek)
+						
+						return liste
+
+					if  liste[i]!=gidecek[x]:
+						i-=1
+						break
+
+					x,i=x+1,i+1
+			i+=1
+		else:
+			raise BulunamayanOge
+				
 	else:
 		if gidecek in liste:
 			x = liste.index(gidecek)
@@ -72,21 +104,19 @@ def degistir(liste, gidecek, gelecek):
 
 class Hata(Exception):
 	mesaj = "Bir hata oluştu"
-	def __init__(self):
-		pass
-	def __repr__(self):
-		return f"HATA:{self.mesaj}"
+	def __repr__(cls):
+		return cls.mesaj
+	def __str__(cls):
+		return cls.__repr__()
 
 class GecersizDegiskenİsmi(Hata):
 	mesaj = "Yanlış değişken ismi."
-	def __init__(self):
-		super().__init__()
 
 class DegiskenHarfleBaslar(Hata):
 	mesaj = "Değişken ismi bir harfle başlamalıdır."
 
 class DegiskenAdindaOzelKarakter(Hata):
-	mesaj = "Değişken ismi ozel karakter içermemelidir."
+	mesaj = "Değişken ismi alfabedeki harfler ve alt çizgi(_) dışında karakter içermemelidir."
 
 class BilinmeyenDegisken(Hata):
 	mesaj = "Bilinmeyen değişken ismi"
@@ -116,7 +146,7 @@ class Islem:
 		pass
 	
 	def __repr__(self):
-		return f"I|({self.duzenlenmis}){self.liste}|" if high_debug else f"I|{self.liste}|"
+		return f"I|({self.duzenlenmis}){self.liste}|" if DEBUG else f"I|{self.liste}|"
 
 	def __str__(self):
 		return self.__repr__()
@@ -125,20 +155,16 @@ class Sayi:
 	def __init__(self, deger):
 		if isinstance(deger, int):
 			self.deger = deger
-			self.cins="Tam sayı"
 		elif isinstance(deger, str):
 			if int(float(deger)) == float(deger):
 				self.deger = int(deger)
-				self.cins="Tam sayı"
 			else:
 				self.deger = float(deger)
-				self.cins="Ondalıklı sayı"
 		elif isinstance(deger, float):
 			self.deger = float(deger)
-			self.cins="Ondalıklı sayı"
 
 	def __repr__(self):
-		return f"S({self.cins}){self.deger}" if high_debug else f"S[{self.deger}]"
+		return f"Sayi({self.deger})" if DEBUG else f"S_{self.deger}"
 
 	def __str__(self):
 		return self.__repr__()
@@ -146,221 +172,251 @@ class Sayi:
 class Metin:
 	def __init__(self, deger):
 		self.deger = deger
-		self.uzunluk = len(deger)
+		if self.deger[0]=='"' and self.deger[-1] == '"':
+			self.uzunluk=len(self.deger)-2
+		else:
+			self.uzunluk = len(deger)
+			self.deger=f'"{self.deger}"'
 
 	def __repr__(self):
-		if self.deger[0] == '"' and self.deger[-1] == '"':
-			return f"M:{self.deger}"
-
-		else:
-			return f'M:"{self.deger}"'
+		return f"Metin({self.deger})" if DEBUG else f"M_{self.deger}"
 
 	def __str__(self):
 		return self.__repr__()
+	
+	@classmethod
+	def Metin_Bul(cls,girdi:str) ->dict:
+		if not '"' in girdi:
+			return {}
+		Metinler={}
+		x2=0
+		while x2 < len(girdi):
+			x2=girdi.find('"',x2)+1 if girdi.find('"',x2)+1!=len(girdi) else KapanmayanTirnak# " işaretinin olduğu yere gidiyor
+			if x2==KapanmayanTirnak :raise KapanmayanTirnak
+			if x2==0:break
+			metin=[]
+			while x2<len(girdi) and girdi[x2]!='"':
+				metin.append(girdi[x2])
+				x2+=1
+
+			if x2==len(girdi):
+				raise KapanmayanTirnak
+			metin=Metin("".join(metin))
+			Metinler.update({metin:[x2-(metin.uzunluk+1),x2]})
+			x2+=1
+		return Metinler
 
 class Degisken:
 	degiskenler = {}
 
-	def __init__(self, isim, deger, cins=None):
+	def __init__(self, isim, deger):
 		self.isim = isim
 		self.deger = deger
-		self.cins=cins
+		self.halledildi=False
 		if isinstance(self.deger, Metin):
 			self.deger = self.deger.deger
-			self.cins = "Yazısal"
-		elif isinstance(self.deger, int):
-			self.cins = "Sayısal"
-
-		if self.cins:
-			self.cins = cins
-
 		Degisken.degiskenler.update({self.isim: self})
 
 	def __repr__(self):
-		if not self.cins:
-			return f"Degisken:<{self.isim}:{self.deger}>" if high_debug else f"<{self.isim}:{self.deger}>"
-		return f"{self.cins}:<{self.isim}:{self.deger}>" if high_debug else f"<{self.isim}:{self.deger}>"
+		return f"Degisken({self.isim}: {self.deger} )" if DEBUG else f"<{self.isim}:{self.deger}>"
 
 	def __str__(self):
 		return self.__repr__()
 # ====================================================================
- 
-def listelestir(girdi:str|list): 
-	girdi_liste=[]
-	if isinstance(girdi,str):
-		if"#"in girdi:
-			girdi = girdi[:girdi.index("#")]
+class Enum(type):
+	rpr=""
+	def __repr__(cls):
+		return cls.rpr
+	def __str__(cls):
+		return cls.__repr__()
 
-		if '"' in girdi:
-			x2=0
-			Metinler={}
-			i=0
-			while x2 < len(girdi):
-				x2=girdi.find('"',x2)+1 if girdi.find('"',x2)+1!=len(girdi) else KapanmayanTirnak
-				if x2==KapanmayanTirnak :raise KapanmayanTirnak
-				if x2==0:break
-				metin=[]
-				while x2<len(girdi) and girdi[x2]!='"':
-					metin.append(girdi[x2])
-					x2+=1
-				if x2==len(girdi):
-					raise KapanmayanTirnak
-				metin=Metin("".join(metin))
-				Metinler.update({metin:x2-(metin.uzunluk+1)})
-				if i==0:
-					girdi_liste.append(girdi[:Metinler[metin]])
-					girdi_liste.append(metin)
-				else:
-					girdi_liste.append(girdi[list(Metinler.values())[i-1]+list(Metinler.keys())[i-1].uzunluk+2:Metinler[metin]])
-					girdi_liste.append(metin)
-					if (i+1)*2 == girdi.count('"') and x2!=len(girdi)-1:
-						girdi_liste.append(girdi[x2+1:])
-				i+=1
-				x2+=1
-			for bolum in girdi_liste.copy():
-				if isinstance(bolum,str):
-					if " " in bolum or "\t" in bolum:
-						degistir(girdi_liste,bolum,ayir(bolum))
-		else:
-			girdi_liste=ayir(girdi)
-	elif isinstance(girdi,list):
-		girdi_liste=girdi
+class BOSLUK(metaclass=Enum):rpr="BOŞLUK" if DEBUG else '" "'
+
+class TAB(metaclass=Enum):rpr="TAB" if DEBUG else '"/t"'
+
+# ====================================================================
+def listelestir(girdi:str,Metinler:dict | None =None) -> list:
+	if girdi=="":
+		raise ValueError
+	
+	if not Metinler:
+		Metinler=Metin.Metin_Bul(girdi)
+	
+	if "#" in girdi and not arasinda(girdi.find("#"),Metinler.values):
+		girdi=girdi[:girdi.find("#")]
+	
 	cikti_liste=[]
+	i=-1
+	while i<=len(girdi):
+		i+=1
+		if i==len(girdi):
+			break
 
-	#if any(["=" in bolum for bolum in girdi_liste if not isinstance(bolum,Metin)]):
-		#x2=girdi_liste.index('=')#fix this
-	for bolum in girdi_liste.copy():
-		if not isinstance(bolum,Metin) and "=" in bolum:
-			if bolum.index("=")==0 or bolum.index("=") == len(bolum-1):
-				return GecersizSozDizimi
-			degistir(girdi_liste,bolum,[bolum[:bolum.index("=")],"=",bolum[bolum.index("=")+1:]])
-			if girdi_liste.index("=")!=1:
-				return GecersizSozDizimi
-			cikti_liste.append(Degisken(girdi_liste[0],listelestir(girdi_liste[2:])))
-	else:
-		for bolum in girdi_liste:
-			i=0
-			geciciliste=[]
-			if isinstance(bolum,Metin):
-				cikti_liste.append(bolum)
+		if girdi[i]=='"':
+			if not i in [x[0] for x in Metinler.values()]:
+				raise UserWarning
+			
+			for i1,index in enumerate(Metinler.values()):#Metinler={Metin:[baştaki ", sondaki "]}
+				if i==index[0]:
+					cikti_liste.append(list(Metinler.keys())[i1])
+					i=index[1]+1
+					break
+			else:
 				continue
 
-			while i<len(bolum):
-				if bolum[i] in Rakamlar and bolum[i]!=".":
-					sayi=[]
-					while i<len(bolum) and bolum[i] in Rakamlar:
-						sayi.append(bolum[i])
-						i+=1
-					sayi=Sayi("".join(sayi))
-					geciciliste.append(sayi)
-					if i==len(bolum):
-						break
+		if i==len(girdi):
+			break
 
+		if girdi[i]== "=" and i!=len(girdi)-1:
+			if len(cikti_liste)==0:
+				raise GecersizSozDizimi
+			
+			if len(cikti_liste)==1 and not isinstance(cikti_liste[0],str):
+				raise GecersizSozDizimi
+			
+			x=cikti_liste.copy()[::-1]
+			deg_adi=[]
+			i1=0
+			while x[i1] in(BOSLUK,TAB) and i1<len(cikti_liste):
+					i1+=1
+
+			if i1==len(cikti_liste):
+				raise GecersizSozDizimi
+			i1-=1
+			while i1<len(cikti_liste):
+				i1+=1
+				if i1==len(cikti_liste) or x[i1] in (BOSLUK,TAB):
+					break
 				
-				if bolum[i] in "+-/*":
-					pass
+				if isinstance(x[i1],str):
+					deg_adi.append(x[i1])
 
+				elif isinstance(x[i1],Sayi):
+					if i1 ==len(x)-1:
+						raise DegiskenHarfleBaslar
+					
+					if x[i1+1] in (BOSLUK,TAB):
+						raise GecersizSozDizimi
+					
+					if isinstance(x[i1].deger,float):
+						raise DegiskenAdindaOzelKarakter
+					deg_adi.append(x[i1])
+				else:
+					raise TypeError("Değişken adı için geçersiz type")
+			deg_adi.reverse()
+			for i1,x in enumerate(deg_adi):
+				if isinstance(x,Sayi):
+					deg_adi[i1]=str(x.deger)
+			deg_adi="".join(deg_adi)
+			if not all(map(lambda x:x in [i1 for i1 in RAKAMLAR if i1!="."]+ALFABE+["_"],deg_adi)):#ALFABE+RAKAMLAR+"_" - "."
+				return DegiskenAdindaOzelKarakter
+			deg_deger=listelestir(girdi[i+1:])
+			for i1,n in enumerate(deg_deger):
+				if n in (BOSLUK,TAB):
+					deg_deger.pop(i1)
+				else:
+					break
+			cikti_liste=[Degisken(deg_adi,deg_deger)]
+			break
+			
+			
+			
+		if girdi[i] in RAKAMLAR and girdi[i]!=".":
+			sayi=[]
+			nokta=0
+			while i<len(girdi) and girdi[i] in RAKAMLAR:
+				if girdi[i]==".": 
+					nokta+=1
+				if nokta>1: break
+				sayi.append(girdi[i])
 				i+=1
-			if not geciciliste:
-				cikti_liste.append(bolum)
-			else:
-				cikti_liste.extend(geciciliste)
+			if sayi[-1]==".":sayi.pop(-1);i-=1
+
+			sayi=Sayi("".join(sayi))
+			cikti_liste.append(sayi)
+			if i==len(girdi):
+				break
+			i-=1
+			continue
+
+		if girdi[i]==" ":
+			cikti_liste.append(BOSLUK)
+			continue
+
+		if girdi[i]=="\t":
+			cikti_liste.append(TAB)
+			continue
+		
+		if i==0 or not isinstance(cikti_liste[-1],str):
+			cikti_liste.append(girdi[i])
+		else:
+			cikti_liste[-1]=cikti_liste[-1]+girdi[i]
+
+
 	return cikti_liste
 
 
 def cozumle(girdi:list):
-	try:
-		cikti = None
-		# ====================================================================
-		#TODO Mantıksal operatörler vs. ekle
-		""" if icinde(list(Mantiksal),girdi):
-		x=0
-		karsilastirma=girdi.split(" \t") """
-		# ====================================================================
-		#TODO Değişken tespiti ekle
-		""" if  Degisken.degiskenler!=dict():
-		x=0
-		while x<len(girdi): """
-		
-		# ====================================================================
-		if isinstance(girdi[0],Metin) or isinstance(girdi[0],Sayi):
-			cikti=girdi[0]
+	pass
 
-		if any(map(lambda x: isinstance(x,Degisken),girdi)):
-			degler=list(filter(lambda x:isinstance(x,Degisken),girdi))
-			if len(degler)>1:
-				raise GecersizDegiskenİsmi
-			degler[0].deger=cozumle(degler[0].deger)
-			cikti=degler[0]
-			return cikti
-			
-			
-		# ====================================================================
-		""" if not cikti:
-			try:
-				cikti = str(eval(girdi))
-			except ZeroDivisionError:
-				cikti=SifiraBolmeHatasi()
-		
-			if not isinstance(cikti,Hata) and not isinstance(cikti,Degisken):
-				if int(float(cikti)) == float(cikti):
-					cikti = str(int(float(cikti))) """
-	# ====================================================================
-
-
-	except ZeroDivisionError:
-		cikti = SifiraBolmeHatasi()
-
-	except SyntaxError:
-		cikti = "Geçersiz söz dizimi"
-
-	except Hata as e:
-		cikti = e
-
-	except Exception as e:
-		cikti = e
-		raise e
-
-	finally:
-		return cikti
-
-def calistir(girdi:list|str):
-	cikti=None
+def calistir(girdi:list | str):
 	if isinstance(girdi,str):
-		cikti=cozumle(listelestir(girdi))
+		if girdi == "" or girdi.strip(" \t")[0] == "#":
+			raise ValueError
+		Metinler=Metin.Metin_Bul(girdi)
+		if "#" in girdi and not arasinda(girdi.find("#"),Metinler.values):
+			girdi=girdi[:girdi.find("#")]
+		
+		try:
+			listelestir_cikti=listelestir(girdi)
 
-	elif isinstance(girdi,list):
-		for sira, satir in enumerate(girdi):
-				if satir == "" or satir.strip(" \t")[0] == "#":
-					continue
+		except Exception as exc:
+			raise exc
+		
+		try:
+			calistir_cikti=cozumle(listelestir_cikti)
 
-				if "eger" in satir or "eğer" in satir:
-					x = 0
-					pass
+		except Exception as exc:
+			raise exc
+		
+		return [calistir_cikti,listelestir_cikti] if DEBUG else [calistir_cikti]
+	
+	cikti_liste=[]
+	for sira, satir in enumerate(girdi):
+		if satir == "" or satir.strip(" \t")[0] == "#":
+			continue
 
-				calistir_cikti = calistir(listelestir(satir))
-				if isinstance(calistir_cikti,Exception):
-					if isinstance(calistir_cikti,Hata):
-						cikti=f'!!!!! HATA !!!!!\n{calistir_cikti.mesaj}'
-						break
-					else:
-						cikti = f'!!!!! HATA !!!!!\n{calistir_cikti}'
-						raise cikti
+		Metinler=Metin.Metin_Bul(satir)
 
-				if not debug:
-					if not isinstance(cikti, Degisken):
-						return cikti
-				else:
-					cikti = f"{sira+1}) {cikti}"
+		if "#" in satir and not arasinda(satir.find("#"),Metinler.values):
+			satir=satir[:satir.find("#")]
+
+		if ("eger" in satir and not arasinda(satir.find("eger"),Metinler.values)) or ("eğer" in satir and not arasinda(satir.find("eğer"),Metinler.values)):
+			pass
+
+		try:
+			listelestir_cikti=listelestir(girdi)
+
+		except Exception as exc:
+			raise exc
+		
+		try:
+			calistir_cikti=cozumle(listelestir_cikti)
+
+		except Exception as exc:
+			raise exc
+		
+		cikti_liste.append([sira+1,calistir_cikti] if not DEBUG else [sira+1,calistir_cikti,listelestir_cikti])
 # =====================================
 if __name__ == "__main__":
-	if mod == 1:
+	if INPUT_MODE == 1:
 		while True:
 			girdi = input("kod_gir >>")
 			cikti = calistir(girdi)
+			print(cikti)
 			
 
-	elif mod == 0:
+	elif INPUT_MODE == 0:
 		try:
 			with open("dosya.txt", "r") as f:
 				liste = list(map(lambda x: x.strip("\n \t"), f.readlines()))
